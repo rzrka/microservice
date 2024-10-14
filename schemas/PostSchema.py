@@ -2,6 +2,7 @@ from typing import Optional, List, Dict
 from datetime import datetime
 from pydantic import BaseModel, Field
 from schemas.CommentSchema import CommentRead
+from uuid import UUID
 
 class PostBase(BaseModel):
     title: str
@@ -20,5 +21,5 @@ class PostCreate(PostBase):
 
 
 class PostRead(PostBase):
-    id: str
+    id: UUID
     comments: List["CommentRead"]

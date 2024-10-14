@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict
 from datetime import datetime
 from pydantic import BaseModel, Field
+from uuid import UUID
 
 class CommentBase(BaseModel):
     publication_date: datetime = Field(default_factory=datetime.now)
@@ -15,5 +16,5 @@ class CommentCreate(CommentBase):
 
 
 class CommentRead(CommentBase):
-    id: int
+    id: UUID
     post_id: int

@@ -7,10 +7,10 @@ from db.postgresql.postgresql import db_instance
 from fastapi import APIRouter, Response, status, Query, Path, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.PostModel import Post
-from schemas.PostSchema import PostRead, PostCreate, PostPartialUpdate
+from schemas.PostSchema import PostRead, PostCreate, PostPartialUpdate, PostBase
 from repository.PostRepository import PostRepository
 from utils.Pagination import pagination
-
+from datetime import datetime
 router = APIRouter(
     prefix="/posts",
     tags=["posts"],
@@ -23,6 +23,7 @@ async def create_post(
         session: AsyncSession = Depends(db_instance.get_async_session)
 ) -> Post:
     repository = PostRepository(session)
+    post_create.publication_date = post_create.publication_date.replace(tzinfo=None)
     post = await repository.create(post_create)
     return post
 

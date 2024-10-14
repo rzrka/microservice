@@ -1,4 +1,4 @@
-
+from config import DB_SCHEMA
 from models.PostModel import Post
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy import select
@@ -11,7 +11,7 @@ class PostRepository:
         self._session = session
 
     async def create(self, post: PostCreate):
-        post = Post(**post.dict())
+        post = Post(**post.dict(), comments=[])
         self._session.add(post)
         await self._session.commit()
         return post

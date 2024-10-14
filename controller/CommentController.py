@@ -7,7 +7,7 @@ from db.postgresql.postgresql import db_instance
 from fastapi import APIRouter, Response, status, Query, Path, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.PostModel import Post
-from models.CommentModel import Comment
+from models.PostModel import Comment
 from schemas.PostSchema import PostRead, PostCreate, PostPartialUpdate
 
 from schemas.CommentSchema import CommentCreate
