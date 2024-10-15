@@ -1,22 +1,18 @@
 import asyncio
+from re import split
+from typing import List
 
 
-def deco(a):
-    def inner(func):
-        def wrapper(*args, **kwargs):
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.future import select
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
 
-            print(a)
-            result = func(*args, **kwargs)
-
-            return result
-
-        return wrapper
-    return inner
+def foo():
+    for i in range(10):
+        yield i
 
 
-@deco(10)
-def func(string):
-    print("call func")
-    return string
-
-print(func("hello"))
+x = foo()
+print(anext(x))

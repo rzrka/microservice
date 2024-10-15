@@ -1,8 +1,15 @@
 from fastapi import FastAPI, Depends, Query
 from typing import Optional
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import APIKeyHeader
+from starlette.status import HTTP_403_FORBIDDEN
 
 from urls import urls
 from db.postgresql.postgresql import db_instance
+
+API_TOKEN = "secret_api_token"
+
+api_key_header = APIKeyHeader(name="Token")
 
 class Pagination:
 
@@ -24,8 +31,14 @@ for router in urls:
 async def pagination(skip: int = 0, limit: int = 10) -> tuple[int, int]:
     return (skip, limit)
 
-@app.get("/")
-def hello(p: tuple[int, int] = Depends(pagination)):
+async def api_token(token: str = Depends(APIKeyHeader(name="Token"))):
+    if token != API_TOKEN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+@app.get("/", dependencies=[Depends(api_token)])
+def hello(
+        p: tuple[int, int] = Depends(pagination),
+):
     skip, limit = p
     return {
         "skip": skip,

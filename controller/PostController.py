@@ -11,6 +11,7 @@ from schemas.PostSchema import PostRead, PostCreate, PostPartialUpdate, PostBase
 from repository.PostRepository import PostRepository
 from utils.Pagination import pagination
 from datetime import datetime
+from uuid import UUID
 router = APIRouter(
     prefix="/posts",
     tags=["posts"],
@@ -38,7 +39,7 @@ async def list_posts(
     return post
 
 async def get_post_or_404(
-        id: int,
+        id: UUID,
         session: AsyncSession = Depends(db_instance.get_async_session)
 ) -> Post:
     repository = PostRepository(session)
@@ -66,7 +67,7 @@ async def update_post(
     for key, value in post_update_dict.items():
         setattr(post, key, value)
 
-    post = await repository(post)
+    post = await repository.update(post)
 
     return post
 
@@ -76,3 +77,4 @@ async def delete_post(
         session: AsyncSession = Depends(db_instance.get_async_session),
 ) -> None:
     repository = PostRepository(session)
+    await repository.delete(post)

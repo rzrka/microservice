@@ -4,6 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy import select
 from schemas.PostSchema import PostCreate
 from typing import Optional, List, Sequence
+from sqlalchemy.orm import selectinload
+from collections.abc import Sequence
+from uuid import UUID
 
 class PostRepository:
 
@@ -16,15 +19,19 @@ class PostRepository:
         await self._session.commit()
         return post
 
-    async def list(self, skip: int, limit: int) -> List[Post]:
-        select_query = select(Post).offset(skip).limit(limit)
+    async def list(self, skip: int, limit: int) -> Sequence[Post]:
+        select_query = (
+            select(Post).options(selectinload(Post.comments)).offset(skip).limit(limit)
+        )
         posts = await self._session.execute(select_query)
 
-        return posts.scalar().all()
+        return posts.scalars().all()
 
-    async def get(self, id: int) -> Post:
-        query = select(Post).where(Post.id == id)
-        result = await self._session.execute(query)
+    async def get(self, id: UUID) -> Post:
+        select_query = (
+            select(Post).options(selectinload(Post.comments)).where(Post.id == id)
+        )
+        result = await self._session.execute(select_query)
         post = result.scalar_one_or_none()
         return post
 

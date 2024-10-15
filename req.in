@@ -8,3 +8,5 @@ bcrypt
 alembic
 python-dotenv
 asyncpg
+argon2_cffi
+pydantic[email]
