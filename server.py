@@ -1,7 +1,11 @@
+import json
+
+import httpx
 from fastapi import FastAPI, Depends, Query
 from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import APIKeyHeader
+from sqlalchemy.util import await_only
 from starlette.status import HTTP_403_FORBIDDEN
 
 from controller.UserController import get_current_user
@@ -9,6 +13,7 @@ from models.UserModel import User
 from schemas.UserSchema import UserRead
 from urls import urls
 from db.postgresql.postgresql import db_instance
+from db.redis.redis import RedisDb
 
 API_TOKEN = "secret_api_token"
 
@@ -28,6 +33,15 @@ class Pagination:
 
 app = FastAPI()
 
+@app.on_event("startup")
+async def startup_event():
+    app.state.redis = RedisDb().rd
+    app.state.http_client = httpx.AsyncClient()
+
+@app.on_event("shutdown")
+async def shutdown():
+    app.state.redis.close()
+
 for router in urls:
     app.include_router(router)
 
@@ -38,15 +52,21 @@ async def api_token(token: str = Depends(APIKeyHeader(name="Token"))):
     if token != API_TOKEN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-@app.get("/", dependencies=[Depends(api_token)])
-def hello(
+@app.get("/")
+async def hello(
         p: tuple[int, int] = Depends(pagination),
 ):
     skip, limit = p
-    return {
-        "skip": skip,
-        "limit": limit,
-    }
+    value = app.state.redis.get("entries")
+    if value is None:
+        value = {
+            "skip": skip,
+            "limit": limit,
+        }
+        data_str = json.dumps(value)
+        app.state.redis.set("entries", data_str)
+
+    return value
 
 @app.get("/protected-route", response_model=UserRead)
 async def protected_route(user: User = Depends(get_current_user)):

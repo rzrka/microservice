@@ -11,3 +11,6 @@ asyncpg
 argon2_cffi
 pydantic[email]
 python-multipart
+redis
+requests
+httpx

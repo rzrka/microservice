@@ -9,21 +9,32 @@ alembic==1.13.3
 annotated-types==0.7.0
     # via pydantic
 anyio==4.6.0
-    # via starlette
+    # via
+    #   httpx
+    #   starlette
 argon2-cffi==23.1.0
     # via -r req.in
 argon2-cffi-bindings==21.2.0
     # via argon2-cffi
 async-timeout==4.0.3
-    # via asyncpg
+    # via
+    #   asyncpg
+    #   redis
 asyncpg==0.29.0
     # via -r req.in
 bcrypt==4.2.0
     # via -r req.in
 build==1.2.2.post1
     # via pip-tools
+certifi==2024.8.30
+    # via
+    #   httpcore
+    #   httpx
+    #   requests
 cffi==1.17.1
     # via argon2-cffi-bindings
+charset-normalizer==3.4.0
+    # via requests
 click==8.1.7
     # via
     #   pip-tools
@@ -43,11 +54,19 @@ fastapi==0.115.0
 greenlet==3.1.1
     # via sqlalchemy
 h11==0.14.0
-    # via uvicorn
+    # via
+    #   httpcore
+    #   uvicorn
+httpcore==1.0.6
+    # via httpx
+httpx==0.27.2
+    # via -r req.in
 idna==3.10
     # via
     #   anyio
     #   email-validator
+    #   httpx
+    #   requests
 importlib-metadata==8.5.0
     # via build
 mako==1.3.5
@@ -78,8 +97,14 @@ python-dotenv==1.0.1
     # via -r req.in
 python-multipart==0.0.12
     # via -r req.in
+redis==5.1.1
+    # via -r req.in
+requests==2.32.3
+    # via -r req.in
 sniffio==1.3.1
-    # via anyio
+    # via
+    #   anyio
+    #   httpx
 sqlalchemy==2.0.35
     # via
     #   -r req.in
@@ -100,6 +125,8 @@ typing-extensions==4.12.2
     #   sqlalchemy
     #   starlette
     #   uvicorn
+urllib3==2.2.3
+    # via requests
 uvicorn==0.31.1
     # via -r req.in
 wheel==0.44.0
