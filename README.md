@@ -8,6 +8,6 @@ pip-compile req.in
 alembic revision --autogenerate -m "Создание новой миграции" 
 
 alembic upgrade head
-
+alembic downgrade -1
 admin = root@example.com
 password = root

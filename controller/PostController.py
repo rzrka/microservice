@@ -24,7 +24,6 @@ async def create_post(
         session: AsyncSession = Depends(db_instance.get_async_session)
 ) -> Post:
     repository = PostRepository(session)
-    post_create.publication_date = post_create.publication_date.replace(tzinfo=None)
     post = await repository.create(post_create)
     return post
 

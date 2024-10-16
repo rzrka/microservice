@@ -36,6 +36,6 @@ class AccessToken(Base):
     )
     user_id: Mapped[UUID] = mapped_column(ForeignKey(f"{DB_SCHEMA}.users.id"), nullable=False)
     expiration_date: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=get_expiration_date
+        DateTime(timezone=True), nullable=False, default=get_expiration_date
     )
     user: Mapped[User] = relationship("User", lazy="joined")
