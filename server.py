@@ -4,6 +4,9 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import APIKeyHeader
 from starlette.status import HTTP_403_FORBIDDEN
 
+from controller.UserController import get_current_user
+from models.UserModel import User
+from schemas.UserSchema import UserRead
 from urls import urls
 from db.postgresql.postgresql import db_instance
 
@@ -45,3 +48,6 @@ def hello(
         "limit": limit,
     }
 
+@app.get("/protected-route", response_model=UserRead)
+async def protected_route(user: User = Depends(get_current_user)):
+    return user

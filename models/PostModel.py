@@ -6,9 +6,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import uuid
 from config import DB_SCHEMA
 from datetime import datetime, timezone
-from db.postgresql.postgresql import Base
-# class Base(DeclarativeBase):
-#     ...
+from models.BaseModel import Base
+
 
 class Comment(Base):
     __tablename__ = "comments"

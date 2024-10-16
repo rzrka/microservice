@@ -10,3 +10,4 @@ python-dotenv
 asyncpg
 argon2_cffi
 pydantic[email]
+python-multipart

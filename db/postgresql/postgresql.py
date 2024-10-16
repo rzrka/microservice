@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker
 
+from repository.AccessTokenRepository import AccessTokenRepository
+from repository.UserRepository import UserRepository
 from config import DB_SCHEMA
 from db.singletone import SingletonMeta
 
@@ -26,8 +28,14 @@ class Database(metaclass=SingletonMeta):
             expire_on_commit=False
         )
 
-    # def __aenter__(self):
-    #     ...
+    async def get_repository(self, rep: str):
+        async with self.async_session_maker() as session:
+            repositories = {
+                "UserRepository": UserRepository,
+                "AccessTokenRepository": AccessTokenRepository,
+            }
+            yield repositories[rep](session)
+
     async def get_async_session(self) -> AsyncGenerator[AsyncSession, None]:
         async with self.async_session_maker() as session:
             yield session
@@ -35,12 +43,3 @@ class Database(metaclass=SingletonMeta):
 
 db_instance = Database(DATABASE_URL)
 
-
-class BaseRepository:
-
-    def __init__(self, session: AsyncSession):
-        self._session = session
-
-class Base(DeclarativeBase):
-    ...
-    __table_args__ = {'schema': DB_SCHEMA}

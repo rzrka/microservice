@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 from config import *
-from db.postgresql.postgresql import Base
+from models.BaseModel import Base
 from models.UserModel import User
 from models.PostModel import Post, Comment
 
