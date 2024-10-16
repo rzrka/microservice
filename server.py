@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import APIKeyHeader
 from sqlalchemy.util import await_only
+from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_403_FORBIDDEN
 
 from controller.UserController import get_current_user
@@ -32,6 +33,14 @@ class Pagination:
         return (page, capped_size)
 
 app = FastAPI()
+app.add_middleware(
+        CORSMiddleware,
+        allow_origin=["http://localhost:9000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        max_age=-1,
+    )
 
 @app.on_event("startup")
 async def startup_event():
@@ -66,7 +75,7 @@ async def hello(
         data_str = json.dumps(value)
         app.state.redis.set("entries", data_str)
 
-    return value
+    return json.loads(value)
 
 @app.get("/protected-route", response_model=UserRead)
 async def protected_route(user: User = Depends(get_current_user)):
