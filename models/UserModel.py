@@ -25,8 +25,7 @@ def generate_token() -> str:
     return secrets.token_urlsafe(32)
 
 def get_expiration_date(duration_seconds: int = 86400) -> datetime:
-    date = datetime.now(tz=timezone.utc) + timedelta(seconds=duration_seconds)
-    return date.replace(tzinfo=None)
+    return datetime.now(tz=timezone.utc) + timedelta(seconds=duration_seconds)
 
 class AccessToken(Base):
     __tablename__ = "access_tokens"
