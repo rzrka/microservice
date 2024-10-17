@@ -2,19 +2,23 @@ import json
 
 from fastapi import APIRouter, Request
 from fastapi import status, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer, APIKeyCookie
 from sqlalchemy.exc import IntegrityError
 from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 
 from db.postgresql.postgresql import db_instance
-from models.UserModel import User, AccessToken
+from models.UserModel import User
 from models.UserModel import get_expiration_date, generate_token
+from repository.AccessTokenRepository import AccessTokenRepository
 
+from entites.AccessToken import AccessToken
 from repository.RedisRepository import RedisRepository
 from repository.UserRepository import UserRepository
-from schemas.UserSchema import UserCreate, UserRead
+from schemas.UserSchema import UserCreate, UserRead, UserUpdate
 from utils.password import get_password_hash
 from uuid import UUID
+from fastapi import Depends, FastAPI, Form, HTTPException, Response, status
+from config import TOKEN_COOKIE_NAME, CSRF_TOKEN_SECRET
 
 router = APIRouter(
     prefix="/user",
@@ -51,32 +55,68 @@ async def create_token(
     form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
     user_repository: UserRepository = Depends(get_user_repository),
 ):
-    redis_repository: RedisRepository = RedisRepository(request.app)
+    token_repository: AccessTokenRepository = AccessTokenRepository(request.app)
     email = form_data.username
     password = form_data.password
     user = await user_repository.authenticate(email, password)
     if not user:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
 
-    token = generate_token()
-    access_token: dict = {
-        "access_token": token,
-        "token_type": "bearer",
-    }
+    token = AccessToken().generate_token()
 
-    if not redis_repository.get(token):
-        redis_repository.set(token, str(user.id), expire_second=86400)
-    return access_token
+    if not token_repository.get_user(token):
+        token_repository.create_token(token, user.id)
+    return token.get_access_token()
 
 async def get_current_user(
         request: Request,
-        token: str = Depends(OAuth2PasswordBearer(tokenUrl="/user/token")),
+        token: AccessToken = Depends(APIKeyCookie(name=TOKEN_COOKIE_NAME)),
         user_repository: UserRepository = Depends(get_user_repository),
 ) -> User:
-    redis_repository: RedisRepository = RedisRepository(request.app)
-    if token is None:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
+    token_repository: AccessTokenRepository = AccessTokenRepository(request.app)
 
-    user_id = UUID(redis_repository.get(token))
+    user_id:UUID = token_repository.get_user(token)
+    if user_id is None:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
     user = await user_repository.get(user_id)
     return user
+
+@router.post("/login")
+async def login(
+        request: Request,
+        response: Response,
+        email: str = Form(...),
+        password: str = Form(...),
+        user_repository: UserRepository = Depends(get_user_repository),
+):
+    cookie = request.cookies
+    token_repository: AccessTokenRepository = AccessTokenRepository(request.app)
+    user = await user_repository.authenticate(email, password)
+
+    if not user:
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
+
+    token = AccessToken().generate_token()
+
+    token_repository.create_token(token, user.id)
+    response.set_cookie(
+        TOKEN_COOKIE_NAME,
+        str(token),
+        max_age=token.expire_second,
+        secure=True,
+        httponly=True,
+        samesite="lax",
+    )
+
+
+@router.patch("/me", response_model=UserRead)
+async def update(
+    user_update: UserUpdate,
+    user: User = Depends(get_current_user),
+    user_repository: UserRepository = Depends(get_user_repository),
+):
+    user_update_dict = user_update.dict(exclude_unset=True)
+    for key, value in user_update_dict.items():
+        setattr(user, key, value)
+
+    return await user_repository.create(user)

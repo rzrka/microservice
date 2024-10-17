@@ -27,14 +27,3 @@ def generate_token() -> str:
 def get_expiration_date(duration_seconds: int = 86400) -> datetime:
     return datetime.now(tz=timezone.utc) + timedelta(seconds=duration_seconds)
 
-class AccessToken(Base):
-    __tablename__ = "access_tokens"
-
-    access_token: Mapped[str] = mapped_column(
-        String(1024), primary_key=True, default=generate_token
-    )
-    user_id: Mapped[UUID] = mapped_column(ForeignKey(f"{DB_SCHEMA}.users.id"), nullable=False)
-    expiration_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=get_expiration_date
-    )
-    user: Mapped[User] = relationship("User", lazy="joined")

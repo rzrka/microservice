@@ -8,6 +8,10 @@ class UserBase(BaseModel):
         orm_mode = True
 
 
+class UserUpdate(UserBase):
+    pass
+
+
 class UserCreate(UserBase):
     password: str
 

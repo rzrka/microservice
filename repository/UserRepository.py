@@ -3,7 +3,8 @@ from sqlalchemy import select
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from repository.BaseRepository import BaseRepository
-from models.UserModel import User, AccessToken
+from models.UserModel import User
+from entites.AccessToken import AccessToken
 from utils.password import verify_password
 from uuid import UUID
 

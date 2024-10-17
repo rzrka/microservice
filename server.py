@@ -8,7 +8,9 @@ from fastapi.security import APIKeyHeader
 from sqlalchemy.util import await_only
 from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_403_FORBIDDEN
+from starlette_csrf import CSRFMiddleware
 
+from config import CSRF_TOKEN_SECRET, TOKEN_COOKIE_NAME
 from controller.UserController import get_current_user
 from models.UserModel import User
 from schemas.UserSchema import UserRead
@@ -41,6 +43,13 @@ app.add_middleware(
         allow_headers=["*"],
         max_age=-1,
     )
+
+app.add_middleware(
+    CSRFMiddleware,
+    secret=CSRF_TOKEN_SECRET,
+    sensitive_cookies={TOKEN_COOKIE_NAME},
+    cookie_domain="localhost",
+)
 
 @app.on_event("startup")
 async def startup_event():
