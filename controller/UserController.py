@@ -1,30 +1,17 @@
-from argon2 import hash_password
-from fastapi import Depends
+from fastapi import APIRouter, Request
+from fastapi import status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
+
 from db.postgresql.postgresql import db_instance
 from models.UserModel import User, AccessToken
-from schemas.UserSchema import UserCreate, UserRead
-from enum import Enum
-from typing import Optional, List, Sequence
-
-from starlette.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
-
-from db.postgresql.postgresql import db_instance
-from fastapi import APIRouter, Response, status, Query, Path, Body, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from models.PostModel import Post
-from schemas.PostSchema import PostRead, PostCreate, PostPartialUpdate, PostBase
-from repository.PostRepository import PostRepository
-from utils.Pagination import pagination
-from datetime import datetime
-from uuid import UUID
-from utils.password import get_password_hash
-from repository.UserRepository import UserRepository
+from models.UserModel import get_expiration_date, generate_token
 from repository.AccessTokenRepository import AccessTokenRepository
-from sqlalchemy import exc, select
-
+from repository.RedisRepository import RedisRepository
+from repository.UserRepository import UserRepository
+from schemas.UserSchema import UserCreate, UserRead
+from utils.password import get_password_hash
 
 router = APIRouter(
     prefix="/user",
@@ -61,21 +48,26 @@ async def register(
 
 @router.post("/token")
 async def create_token(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
     user_repository: UserRepository = Depends(get_user_repository),
-    access_token_repository: AccessTokenRepository = Depends(get_access_token_repository),
 ):
+    redis_repository: RedisRepository = RedisRepository(request.app)
     email = form_data.username
     password = form_data.password
     user = await user_repository.authenticate(email, password)
     if not user:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED)
 
-    token = await access_token_repository.create_token(user)
-    return {
-        "access_token": token.access_token,
-        "token_type": "bearer",
-    }
+    access_token = redis_repository.get(str(user.id))
+    if not access_token:
+        token = generate_token()
+        access_token: dict = {
+            "access_token": token,
+            "token_type": "bearer",
+        }
+        redis_repository.set(str(user.id), access_token, expire_second=86400)
+    return access_token
 
 async def get_current_user(
         token: str = Depends(OAuth2PasswordBearer(tokenUrl="/user/token")),
