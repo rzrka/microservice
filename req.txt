@@ -12,6 +12,7 @@ anyio==4.6.0
     # via
     #   httpx
     #   starlette
+    #   watchfiles
 argon2-cffi==23.1.0
     # via -r req.in
 argon2-cffi-bindings==21.2.0
@@ -43,6 +44,7 @@ colorama==0.4.6
     # via
     #   build
     #   click
+    #   uvicorn
 dnspython==2.7.0
     # via email-validator
 email-validator==2.2.0
@@ -59,6 +61,8 @@ h11==0.14.0
     #   uvicorn
 httpcore==1.0.6
     # via httpx
+httptools==0.6.4
+    # via uvicorn
 httpx==0.27.2
     # via -r req.in
 idna==3.10
@@ -96,9 +100,13 @@ pyproject-hooks==1.2.0
     #   build
     #   pip-tools
 python-dotenv==1.0.1
-    # via -r req.in
+    # via
+    #   -r req.in
+    #   uvicorn
 python-multipart==0.0.12
     # via -r req.in
+pyyaml==6.0.2
+    # via uvicorn
 redis==5.1.1
     # via -r req.in
 requests==2.32.3
@@ -133,8 +141,12 @@ typing-extensions==4.12.2
     #   uvicorn
 urllib3==2.2.3
     # via requests
-uvicorn==0.31.1
+uvicorn[standard]==0.31.1
     # via -r req.in
+watchfiles==0.24.0
+    # via uvicorn
+websockets==13.1
+    # via uvicorn
 wheel==0.44.0
     # via pip-tools
 zipp==3.20.2

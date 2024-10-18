@@ -12,3 +12,4 @@ DB_SCHEMA=os.environ.get("DB_SCHEMA")
 
 TOKEN_COOKIE_NAME = "token"
 CSRF_TOKEN_SECRET = "__CHANGE_THIS_WITH_YOUR_OWN_SECRET_VALUE__"
+API_TOKEN = "secret_api_token"

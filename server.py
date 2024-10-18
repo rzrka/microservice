@@ -1,13 +1,16 @@
+import asyncio
+from datetime import datetime
 import json
 
 import httpx
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, Cookie, WebSocketException
 from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import APIKeyHeader
 from sqlalchemy.util import await_only
 from starlette.middleware.cors import CORSMiddleware
-from starlette.status import HTTP_403_FORBIDDEN
+from starlette.status import HTTP_403_FORBIDDEN, WS_1008_POLICY_VIOLATION
+from starlette.websockets import WebSocket, WebSocketDisconnect
 from starlette_csrf import CSRFMiddleware
 
 from config import CSRF_TOKEN_SECRET, TOKEN_COOKIE_NAME
@@ -17,8 +20,7 @@ from schemas.UserSchema import UserRead
 from urls import urls
 from db.postgresql.postgresql import db_instance
 from db.redis.redis import RedisDb
-
-API_TOKEN = "secret_api_token"
+from config import API_TOKEN
 
 api_key_header = APIKeyHeader(name="Token")
 
@@ -35,21 +37,22 @@ class Pagination:
         return (page, capped_size)
 
 app = FastAPI()
-app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost:9000"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        max_age=-1,
-    )
+# app.add_middleware(
+#         CORSMiddleware,
+#         allow_origins=["http://localhost:9000"],
+#         allow_credentials=True,
+#         allow_methods=["*"],
+#         allow_headers=["*"],
+#         max_age=-1,
+#     )
+#
+# app.add_middleware(
+#     CSRFMiddleware,
+#     secret=CSRF_TOKEN_SECRET,
+#     sensitive_cookies={TOKEN_COOKIE_NAME},
+#     cookie_domain="localhost",
+# )
 
-app.add_middleware(
-    CSRFMiddleware,
-    secret=CSRF_TOKEN_SECRET,
-    sensitive_cookies={TOKEN_COOKIE_NAME},
-    cookie_domain="localhost",
-)
 
 @app.on_event("startup")
 async def startup_event():

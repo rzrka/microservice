@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pip-tools
 sqlalchemy
 psycopg2

@@ -11,3 +11,6 @@ alembic upgrade head
 alembic downgrade -1
 admin = root@example.com
 password = root
+
+
+python -m http.server 9000
