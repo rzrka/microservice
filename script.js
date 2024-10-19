@@ -13,13 +13,11 @@ const addMessage = (message, username, sender) => {
 };
 
 const connectWebSocket = (username) => {
-  let token = 'SECRET_API_TOKEN';
   document.cookie = 'token=SECRET_API_TOKEN';
   const socket = new WebSocket(`ws://localhost:8000/ws?username=${username}`);
 
   // Connection opened
   socket.addEventListener('open', function (event) {
-    socket.send(JSON.stringify({ token: token }));
     document.getElementById('message').removeAttribute('disabled');
     document.getElementById('button-send').removeAttribute('disabled');
     document.getElementById('username').setAttribute('disabled', 'true');

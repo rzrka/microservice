@@ -15,3 +15,4 @@ redis
 requests
 httpx
 starlette-csrf
+broadcaster[redis]

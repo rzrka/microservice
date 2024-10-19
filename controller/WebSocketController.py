@@ -1,64 +1,59 @@
-import json
-from xml.sax import parse
+import asyncio
 
-from fastapi import APIRouter, Request, Cookie
-from fastapi import status, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer, APIKeyCookie
-from sqlalchemy.exc import IntegrityError
-from starlette.exceptions import WebSocketException
-from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED, WS_1008_POLICY_VIOLATION
+from fastapi import APIRouter
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from db.postgresql.postgresql import db_instance
-from models.UserModel import User
-from models.UserModel import get_expiration_date, generate_token
-from repository.AccessTokenRepository import AccessTokenRepository
-
-from entites.AccessToken import AccessToken
-from repository.RedisRepository import RedisRepository
-from repository.UserRepository import UserRepository
-from schemas.UserSchema import UserCreate, UserRead, UserUpdate
-from config import API_TOKEN
-from utils.password import get_password_hash
-from uuid import UUID
-from fastapi import Depends, FastAPI, Form, HTTPException, Response, status
-from config import TOKEN_COOKIE_NAME, CSRF_TOKEN_SECRET
-from datetime import datetime
-import asyncio
+from entites.MessageEvent import MessageEvent
+from repository.BroadcastBrokerRepository import BroadcastBrokerRepository
 
 router = APIRouter(
     prefix="/ws",
     tags=["ws"],
 )
 
-async def echo_message(websocket: WebSocket):
-    data = await websocket.receive_text()
-    await websocket.send_text(f"Message text was: {data}")
 
-async def send_message(websocket: WebSocket):
-    await asyncio.sleep(10)
-    await websocket.send_text(f"It is: {datetime.utcnow().isoformat()}")
+async def receive_message(
+        websocket: WebSocket,
+        username: str,
+        repository: BroadcastBrokerRepository,
+):
+    async for event in repository.get_events():
+        message_event = MessageEvent.parse_raw(event.message)
+        if message_event.username != username:
+            await websocket.send_json(message_event.dict())
+
+
+async def send_message(websocket: WebSocket,
+                       username: str,
+                       repository: BroadcastBrokerRepository,
+                       ):
+    data = await websocket.receive_text()
+    event = MessageEvent(username=username, message=data)
+    await repository.send_message(event=event)
 
 
 @router.websocket("")
-async def websocket_endpoint(websocket: WebSocket,
-                             username: str = "Anonymous",
-                             ):
+async def websocket_endpoint(
+        websocket: WebSocket,
+        username: str = "Anonymous",
+):
+    repository = BroadcastBrokerRepository()
+    await websocket.accept()
     try:
-        await websocket.accept()
-        try:
-            payload = json.loads(await websocket.receive_text())
-            token = payload.get("token")
-        except json.JSONDecodeError:
-            raise WebSocketException
-
-        if token != API_TOKEN:
-            raise WebSocketException(WS_1008_POLICY_VIOLATION)
-        await websocket.send_text(f"Hello, {username}!")
-
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
+            receive_message_task = asyncio.create_task(
+                receive_message(websocket, username, repository=repository)
+            )
+            send_message_task = asyncio.create_task(send_message(websocket, username, repository=repository))
+            done, pending = await asyncio.wait(
+                {receive_message_task, send_message_task},
+                return_when=asyncio.FIRST_COMPLETED,
+            )
 
-    except (WebSocketDisconnect, WebSocketException):
-        await websocket.close()
+            for task in pending:
+                task.cancel()
+
+            for task in done:
+                task.result()
+    except WebSocketDisconnect:
+        ...

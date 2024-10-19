@@ -12,18 +12,19 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_403_FORBIDDEN, WS_1008_POLICY_VIOLATION
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from starlette_csrf import CSRFMiddleware
-
+import contextlib
 from config import CSRF_TOKEN_SECRET, TOKEN_COOKIE_NAME
 from controller.UserController import get_current_user
 from models.UserModel import User
 from schemas.UserSchema import UserRead
+from services.BroadcastBroker import BroadcastBroker
 from urls import urls
 from db.postgresql.postgresql import db_instance
 from db.redis.redis import RedisDb
 from config import API_TOKEN
 
 api_key_header = APIKeyHeader(name="Token")
-
+broadcast = BroadcastBroker()
 class Pagination:
 
     def __init__(self, maximum_limit: int = 100):
@@ -58,10 +59,12 @@ app = FastAPI()
 async def startup_event():
     app.state.redis = RedisDb().rd
     app.state.http_client = httpx.AsyncClient()
+    await broadcast.connect()
 
 @app.on_event("shutdown")
 async def shutdown():
     app.state.redis.close()
+    await broadcast.disconnect()
 
 for router in urls:
     app.include_router(router)
