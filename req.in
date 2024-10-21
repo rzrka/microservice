@@ -17,3 +17,5 @@ httpx
 starlette-csrf
 broadcaster[redis]
 pytest
+asgi-lifespan
+pytest-asyncio

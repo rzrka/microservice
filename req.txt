@@ -18,6 +18,8 @@ argon2-cffi==23.1.0
     # via -r req.in
 argon2-cffi-bindings==21.2.0
     # via argon2-cffi
+asgi-lifespan==2.1.0
+    # via -r req.in
 async-timeout==4.0.3
     # via
     #   asyncpg
@@ -112,6 +114,10 @@ pyproject-hooks==1.2.0
     #   build
     #   pip-tools
 pytest==8.3.3
+    # via
+    #   -r req.in
+    #   pytest-asyncio
+pytest-asyncio==0.24.0
     # via -r req.in
 python-dotenv==1.0.1
     # via
@@ -130,6 +136,7 @@ requests==2.32.3
 sniffio==1.3.1
     # via
     #   anyio
+    #   asgi-lifespan
     #   httpx
 sqlalchemy==2.0.35
     # via

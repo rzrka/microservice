@@ -1,8 +1,13 @@
+import asyncio
 from datetime import date
 from enum import Enum
-from pydantic import BaseModel
-import pytest
 
+import httpx
+from asgi_lifespan import LifespanManager
+from pydantic import BaseModel
+from server import app
+import pytest
+import pytest_asyncio
 class Gender(str, Enum):
     MALE = "MALE"
     FEMALE = "FEMALE"
@@ -40,3 +45,15 @@ def person(address):
         interests=["travel", "sports"],
         address=address,
     )
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
+@pytest_asyncio.fixture
+async def test_client():
+    async with LifespanManager(app):
+        async with httpx.AsyncClient(app=app, base_url="http://app.io") as test_client:
+            yield test_client

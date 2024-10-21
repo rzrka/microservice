@@ -92,6 +92,11 @@ async def hello(
 
     return json.loads(value)
 
+@app.get("/test")
+async def func():
+    return {"hello": "world"}
+
+
 @app.get("/protected-route", response_model=UserRead)
 async def protected_route(user: User = Depends(get_current_user)):
     return user
