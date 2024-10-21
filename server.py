@@ -7,6 +7,7 @@ from fastapi import FastAPI, Depends, Query, Cookie, WebSocketException
 from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import APIKeyHeader
+from contextlib import asynccontextmanager
 from sqlalchemy.util import await_only
 from starlette.middleware.cors import CORSMiddleware
 from starlette.status import HTTP_403_FORBIDDEN, WS_1008_POLICY_VIOLATION
@@ -37,7 +38,17 @@ class Pagination:
         capped_size = min(self.maximum_limit, size)
         return (page, capped_size)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.redis = RedisDb().rd
+    app.state.http_client = httpx.AsyncClient()
+    await broadcast.connect()
+    yield
+    app.state.redis.close()
+    await broadcast.disconnect()
+
+
+app = FastAPI(lifespan=lifespan)
 # app.add_middleware(
 #         CORSMiddleware,
 #         allow_origins=["http://localhost:9000"],
@@ -53,18 +64,6 @@ app = FastAPI()
 #     sensitive_cookies={TOKEN_COOKIE_NAME},
 #     cookie_domain="localhost",
 # )
-
-
-@app.on_event("startup")
-async def startup_event():
-    app.state.redis = RedisDb().rd
-    app.state.http_client = httpx.AsyncClient()
-    await broadcast.connect()
-
-@app.on_event("shutdown")
-async def shutdown():
-    app.state.redis.close()
-    await broadcast.disconnect()
 
 for router in urls:
     app.include_router(router)
