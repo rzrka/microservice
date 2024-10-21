@@ -1,7 +1,10 @@
 import asyncio
 from datetime import date
 from enum import Enum
+import contextlib
 
+from fastapi import FastAPI
+from httpx import AsyncClient
 import httpx
 from asgi_lifespan import LifespanManager
 from pydantic import BaseModel
@@ -26,6 +29,14 @@ class Person(BaseModel):
     address: Address
 
 
+@contextlib.asynccontextmanager
+async def lifespan_wrapper(app):
+    print("sub startup")
+    yield
+    print("sub shutdown")
+
+app.router.lifespan_context = lifespan_wrapper
+
 @pytest.fixture
 def address():
     return Address(
@@ -48,12 +59,12 @@ def person(address):
 
 @pytest.fixture(scope="session")
 def event_loop():
-    loop = asyncio.new_event_loop()
+    loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 @pytest_asyncio.fixture
-async def test_client():
+async def client()-> AsyncClient:
     async with LifespanManager(app):
-        async with httpx.AsyncClient(app=app, base_url="http://app.io") as test_client:
-            yield test_client
+        async with AsyncClient(app=app, base_url="http://test") as c:
+            yield c

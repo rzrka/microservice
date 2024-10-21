@@ -1,6 +1,6 @@
 import pytest
 
-from fixtures import Address, Person, Gender
+from test.my_fixtures import Address, Person, Gender
 
 @pytest.fixture
 def address():
