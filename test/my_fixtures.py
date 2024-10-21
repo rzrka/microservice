@@ -8,26 +8,11 @@ from httpx import AsyncClient
 import httpx
 from asgi_lifespan import LifespanManager
 from pydantic import BaseModel
+from schemas.PostSchema import PostRead, PostCreate
+from models.PostModel import Post
 from server import app
 import pytest
 import pytest_asyncio
-class Gender(str, Enum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
-    NON_BINARY = "NON_BINARY"
-class Address(BaseModel):
-    street_address: str
-    postal_code: str
-    city: str
-    country: str
-class Person(BaseModel):
-    first_name: str
-    last_name: str
-    gender: Gender
-    birthdate: date
-    interests: list[str]
-    address: Address
-
 
 @contextlib.asynccontextmanager
 async def lifespan_wrapper(app):
@@ -36,26 +21,6 @@ async def lifespan_wrapper(app):
     print("sub shutdown")
 
 app.router.lifespan_context = lifespan_wrapper
-
-@pytest.fixture
-def address():
-    return Address(
-        street_address="12 Squirell Street",
-        postal_code="424242",
-        city="Woodtown",
-        country="US",
-    )
-
-@pytest.fixture
-def person(address):
-    return Person(
-        first_name="John",
-        last_name="Doe",
-        gender=Gender.MALE,
-        birthdate="1991-01-01",
-        interests=["travel", "sports"],
-        address=address,
-    )
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -68,3 +33,19 @@ async def client()-> AsyncClient:
     async with LifespanManager(app):
         async with AsyncClient(app=app, base_url="http://test") as c:
             yield c
+
+
+@pytest.fixture
+def post_valid():
+    return dict(
+        title="test1",
+        content="test1",
+        publication_date="2024-10-21T13:44:01.610Z",
+    )
+
+@pytest.fixture
+def post_invalid():
+    return dict(
+        title="test1",
+        publication_date="2024-10-21T13:44:01.610Z",
+    )
