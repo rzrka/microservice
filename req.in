@@ -16,3 +16,4 @@ requests
 httpx
 starlette-csrf
 broadcaster[redis]
+pytest
