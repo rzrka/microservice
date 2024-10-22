@@ -4,7 +4,7 @@ import json
 
 import httpx
 from fastapi import FastAPI, Depends, Query, Cookie, WebSocketException
-from typing import Optional
+from typing import Optional, Any
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
@@ -99,3 +99,19 @@ async def func():
 @app.get("/protected-route", response_model=UserRead)
 async def protected_route(user: User = Depends(get_current_user)):
     return user
+
+class ExternalAPI:
+    def __init__(self) -> None:
+        self.client = httpx.AsyncClient(base_url="https://dummyjson.com")
+
+    async def __call__(self) -> dict[str, Any]:
+        async with self.client as client:
+            response = await client.get("/products")
+            return response.json()
+
+
+external_api = ExternalAPI()
+
+@app.get("/products")
+async def external_products(products: dict[str, Any] = Depends(external_api)):
+    return products

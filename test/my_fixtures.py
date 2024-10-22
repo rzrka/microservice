@@ -3,6 +3,7 @@ import os
 from datetime import date
 from enum import Enum
 import contextlib
+from typing import Any
 
 from fastapi import FastAPI
 from httpx import AsyncClient
@@ -18,6 +19,7 @@ from server import app
 import pytest
 import pytest_asyncio
 from db.postgresql.postgresql import Database, db_instance
+from server import external_api
 from alembic.config import Config
 from alembic import command
 
@@ -39,6 +41,25 @@ class TestDataBase(Database):
             autoflush=False,
             expire_on_commit=False
         )
+
+class MockExternalAPI:
+    mock_data = {
+        "products": [
+            {
+                "id": 1,
+                "title": "iPhone 9",
+                "description": "An apple mobile which is nothing like apple",
+                "thumbnail": "https://i.dummyjson.com/data/products/1/thumbnail.jpg",
+            },
+        ],
+        "total": 1,
+        "skip": 0,
+        "limit": 30,
+    }
+
+    async def __call__(self) -> dict[str, Any]:
+        return MockExternalAPI.mock_data
+
 
 db_test_instance = TestDataBase(DATABASE_URL)
 
@@ -71,6 +92,7 @@ def event_loop():
 @pytest_asyncio.fixture
 async def client()-> AsyncClient:
     app.dependency_overrides[db_instance.get_async_session] = db_test_instance.get_async_session
+    app.dependency_overrides[external_api] = MockExternalAPI()
     async with LifespanManager(app):
         async with AsyncClient(app=app, base_url="http://test") as c:
             yield c
