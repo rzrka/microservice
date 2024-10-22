@@ -9,6 +9,9 @@ from httpx import AsyncClient
 import httpx
 from asgi_lifespan import LifespanManager
 from pydantic import BaseModel
+from sqlalchemy import NullPool
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
 from schemas.PostSchema import PostRead, PostCreate
 from models.PostModel import Post
 from server import app
@@ -21,20 +24,37 @@ from alembic import command
 DATABASE_URL = f"postgresql+asyncpg://root:root@localhost:5432/test"
 
 class TestDataBase(Database):
-    ...
+
+    def __init__(self, url):
+        self.engine = create_async_engine(
+            url,
+            pool_pre_ping=True,
+            echo=True,
+            poolclass=NullPool,
+        )
+        self.async_session_maker = async_sessionmaker(
+            bind=self.engine,
+            class_=AsyncSession,
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False
+        )
 
 db_test_instance = TestDataBase(DATABASE_URL)
 
 @contextlib.asynccontextmanager
 async def lifespan_wrapper(app):
-    os.environ["DB_NAME"] = "test"
+    yield
+
+app.router.lifespan_context = lifespan_wrapper
+
+@pytest.fixture(autouse=True)
+def setup_db():
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option('sqlalchemy.url', "postgresql://root:root@localhost:5432/test")
     command.upgrade(alembic_cfg, "head")
     yield
     command.downgrade(alembic_cfg, "base")
-
-app.router.lifespan_context = lifespan_wrapper
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -65,3 +85,17 @@ def post_invalid():
         title="test1",
         publication_date="2024-10-21T13:44:01.610Z",
     )
+
+@pytest_asyncio.fixture(autouse=True)
+async def initial_posts(setup_db):
+    initial_posts = [
+        Post(title="Post 1", content="Content 1"),
+        Post(title="Post 2", content="Content 2"),
+        Post(title="Post 3", content="Content 3"),
+    ]
+
+    async for session in db_test_instance.get_async_session():
+        session.add_all(initial_posts)
+        await session.commit()
+
+    return initial_posts
