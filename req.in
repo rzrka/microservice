@@ -19,3 +19,4 @@ broadcaster[redis]
 pytest
 asgi-lifespan
 pytest-asyncio
+bson

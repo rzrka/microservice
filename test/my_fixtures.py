@@ -56,6 +56,11 @@ def setup_db():
     yield
     command.downgrade(alembic_cfg, "base")
 
+
+@pytest_asyncio.fixture
+async def get_session():
+    yield db_test_instance.get_async_session()
+
 @pytest.fixture(scope="session")
 def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
