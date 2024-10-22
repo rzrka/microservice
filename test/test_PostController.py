@@ -15,8 +15,8 @@ from test.my_fixtures import post_valid, client, post_invalid
 @pytest.mark.asyncio
 class TestCreatePerson:
 
-    async def test_invalid(self, post:dict, client: httpx.AsyncClient):
-        response = await client.post("/posts/new", json=post)
+    async def test_invalid(self, post_invalid:dict, client: httpx.AsyncClient):
+        response = await client.post("/posts/new", json=post_invalid)
         assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
 
     async def test_valid(self, post_valid:dict, client: httpx.AsyncClient):

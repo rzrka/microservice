@@ -1,4 +1,5 @@
 import asyncio
+import os
 from datetime import date
 from enum import Enum
 import contextlib
@@ -13,12 +14,25 @@ from models.PostModel import Post
 from server import app
 import pytest
 import pytest_asyncio
+from db.postgresql.postgresql import Database, db_instance
+from alembic.config import Config
+from alembic import command
+
+DATABASE_URL = f"postgresql+asyncpg://root:root@localhost:5432/test"
+
+class TestDataBase(Database):
+    ...
+
+db_test_instance = TestDataBase(DATABASE_URL)
 
 @contextlib.asynccontextmanager
 async def lifespan_wrapper(app):
-    print("sub startup")
+    os.environ["DB_NAME"] = "test"
+    alembic_cfg = Config("alembic.ini")
+    alembic_cfg.set_main_option('sqlalchemy.url', "postgresql://root:root@localhost:5432/test")
+    command.upgrade(alembic_cfg, "head")
     yield
-    print("sub shutdown")
+    command.downgrade(alembic_cfg, "base")
 
 app.router.lifespan_context = lifespan_wrapper
 
@@ -28,8 +42,10 @@ def event_loop():
     yield loop
     loop.close()
 
+
 @pytest_asyncio.fixture
 async def client()-> AsyncClient:
+    app.dependency_overrides[db_instance.get_async_session] = db_test_instance.get_async_session
     async with LifespanManager(app):
         async with AsyncClient(app=app, base_url="http://test") as c:
             yield c
