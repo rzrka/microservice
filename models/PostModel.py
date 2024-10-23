@@ -1,11 +1,9 @@
-from datetime import datetime
-from email.policy import default
-
-from sqlalchemy import DateTime, Integer, String, Text, UUID, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import uuid
-from config import DB_SCHEMA
-from datetime import datetime, timezone
+from datetime import datetime
+
+from sqlalchemy import DateTime, String, Text, UUID, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from models.BaseModel import Base
 
 
@@ -21,6 +19,7 @@ class Comment(Base):
 
     post: Mapped["Post"] = relationship("Post", back_populates="comments")
 
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -32,4 +31,3 @@ class Post(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
     comments: Mapped[list[Comment]] = relationship("Comment", cascade="all, delete")
-

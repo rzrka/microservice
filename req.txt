@@ -117,8 +117,11 @@ pydantic[email]==2.9.2
     # via
     #   -r req.in
     #   fastapi
+    #   pydantic-settings
 pydantic-core==2.23.4
     # via pydantic
+pydantic-settings==2.6.0
+    # via -r req.in
 pyproject-hooks==1.2.0
     # via
     #   build
@@ -134,6 +137,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
     # via
     #   -r req.in
+    #   pydantic-settings
     #   uvicorn
 python-multipart==0.0.12
     # via -r req.in

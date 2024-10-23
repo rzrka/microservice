@@ -1,13 +1,9 @@
 from collections.abc import AsyncGenerator
 
-from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import sessionmaker
 
-from repository.UserRepository import UserRepository
-from config import DB_SCHEMA
 from db.singletone import SingletonMeta
+from repository.UserRepository import UserRepository
 
 DATABASE_URL = f"postgresql+asyncpg://root:root@localhost:5432/fastapi"
 
@@ -41,4 +37,3 @@ class Database(metaclass=SingletonMeta):
 
 
 db_instance = Database(DATABASE_URL)
-

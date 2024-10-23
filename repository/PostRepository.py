@@ -1,12 +1,13 @@
-from config import DB_SCHEMA
-from models.PostModel import Post
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy import select
-from schemas.PostSchema import PostCreate
-from typing import Optional, List, Sequence
-from sqlalchemy.orm import selectinload
 from collections.abc import Sequence
 from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from models.PostModel import Post
+from schemas.PostSchema import PostCreate
+
 
 class PostRepository:
 

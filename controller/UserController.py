@@ -18,7 +18,7 @@ from schemas.UserSchema import UserCreate, UserRead, UserUpdate
 from utils.password import get_password_hash
 from uuid import UUID
 from fastapi import Depends, FastAPI, Form, HTTPException, Response, status
-from config import TOKEN_COOKIE_NAME, CSRF_TOKEN_SECRET
+from config import settings
 
 router = APIRouter(
     prefix="/user",
@@ -70,7 +70,7 @@ async def create_token(
 
 async def get_current_user(
         request: Request,
-        token: AccessToken = Depends(APIKeyCookie(name=TOKEN_COOKIE_NAME)),
+        token: AccessToken = Depends(APIKeyCookie(name=settings.TOKEN_COOKIE_NAME)),
         user_repository: UserRepository = Depends(get_user_repository),
 ) -> User:
     token_repository: AccessTokenRepository = AccessTokenRepository(request.app)
@@ -100,7 +100,7 @@ async def login(
 
     token_repository.create_token(token, user.id)
     response.set_cookie(
-        TOKEN_COOKIE_NAME,
+        settings.TOKEN_COOKIE_NAME,
         str(token),
         max_age=token.expire_second,
         secure=True,

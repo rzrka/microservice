@@ -1,16 +1,13 @@
-from datetime import datetime
-from email.policy import default
-from sqlalchemy import DateTime, Integer, String, Text, UUID, ForeignKey
-from sqlalchemy import DateTime, Integer, String, Text, UUID, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-import uuid
+from sqlalchemy import String, UUID
 import secrets
-from config import DB_SCHEMA
-from models.BaseModel import Base
-from datetime import datetime, timedelta, timezone
-
+import uuid
 from datetime import datetime, timezone
+from datetime import timedelta
 
+from sqlalchemy import String, UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.BaseModel import Base
 
 
 class User(Base):
@@ -24,6 +21,6 @@ class User(Base):
 def generate_token() -> str:
     return secrets.token_urlsafe(32)
 
+
 def get_expiration_date(duration_seconds: int = 86400) -> datetime:
     return datetime.now(tz=timezone.utc) + timedelta(seconds=duration_seconds)
-

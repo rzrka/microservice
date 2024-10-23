@@ -1,7 +1,7 @@
 from sqlalchemy.orm import DeclarativeBase
-from config import DB_SCHEMA
+from config import settings
 
 
 class Base(DeclarativeBase):
     ...
-    __table_args__ = {'schema': DB_SCHEMA}
+    __table_args__ = {'schema': settings.DB_SCHEMA}

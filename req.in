@@ -21,3 +21,4 @@ asgi-lifespan
 pytest-asyncio
 bson
 httpx-ws
+pydantic-settings
