@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    container_name: fastapi_postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: fastapi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fastapi_network
+
+  redis:
+    image: redis:alpine
+    restart: always
+    container_name: fastapi_redis  # Имя контейнера для Redis
+    networks:
+      - fastapi_network
+
+  app:
+    build: .
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      DB_HOST: fastapi_postgres  # Имя контейнера базы данных
+      DB_PORT: 5432
+      DB_NAME: fastapi
+      DB_USER: root
+      DB_PASS: root
+      DB_SCHEMA: public
+      REDIS_HOST: fastapi_redis  # Имя контейнера Redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - fastapi_network
+
+networks:
+  fastapi_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

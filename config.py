@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     DB_PASS:str
     DB_SCHEMA:str
     DATABASE_URL: str = ""
+    REDIS_HOST: str
+    REDIS_PORT: int
     TOKEN_COOKIE_NAME:str = "token"
     CSRF_TOKEN_SECRET:str = "__CHANGE_THIS_WITH_YOUR_OWN_SECRET_VALUE__"
     API_TOKEN:str = "secret_api_token"

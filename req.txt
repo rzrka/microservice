@@ -66,6 +66,8 @@ fastapi==0.115.0
     # via -r req.in
 greenlet==3.1.1
     # via sqlalchemy
+gunicorn==23.0.0
+    # via -r req.in
 h11==0.14.0
     # via
     #   httpcore
@@ -102,6 +104,7 @@ markupsafe==3.0.1
 packaging==24.1
     # via
     #   build
+    #   gunicorn
     #   pytest
 passlib==1.7.4
     # via -r req.in

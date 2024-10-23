@@ -18,7 +18,7 @@ section = config.config_ini_section
 # config.set_section_option(section, "DB_NAME", settings.DB_NAME)
 
 config.set_main_option(
-    "sqlalchemy.url", settings.DATABASE_URL.replace("+asyncpg", "").replace(settings.DB_NAME, "test")
+    "sqlalchemy.url", settings.DATABASE_URL.replace("+asyncpg", "")
 )
 
 
