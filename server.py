@@ -35,6 +35,8 @@ class Pagination:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.debug:
+        print(settings)
     app.state.redis = RedisDb().rd
     app.state.http_client = httpx.AsyncClient()
     await broadcast.connect()

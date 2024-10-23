@@ -4,9 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 
 from db.singletone import SingletonMeta
 from repository.UserRepository import UserRepository
-
-DATABASE_URL = f"postgresql+asyncpg://root:root@localhost:5432/fastapi"
-
+from config import settings
 
 class Database(metaclass=SingletonMeta):
 
@@ -36,4 +34,4 @@ class Database(metaclass=SingletonMeta):
             yield session
 
 
-db_instance = Database(DATABASE_URL)
+db_instance = Database(settings.DATABASE_URL)
