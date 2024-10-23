@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 import httpx
 from asgi_lifespan import LifespanManager
+from httpx_ws.transport import ASGIWebSocketTransport
 from pydantic import BaseModel
 from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -97,6 +98,13 @@ async def client()-> AsyncClient:
         async with AsyncClient(app=app, base_url="http://test") as c:
             yield c
 
+@pytest_asyncio.fixture
+async def client_ws():
+    async with LifespanManager(app):
+        async with httpx.AsyncClient(
+            transport=ASGIWebSocketTransport(app), base_url="http://app.io"
+        ) as test_client:
+            yield test_client
 
 @pytest.fixture
 def post_valid():
