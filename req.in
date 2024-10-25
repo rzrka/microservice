@@ -23,3 +23,6 @@ bson
 httpx-ws
 pydantic-settings
 gunicorn
+numpy
+pandas
+scikit-learn

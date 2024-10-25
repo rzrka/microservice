@@ -15,4 +15,4 @@ password = root
 
 python -m http.server 9000
 
-docker build -t fastapi-app  .
+docker-compose up --build
