@@ -14,6 +14,7 @@ from models.UserModel import User
 from schemas.UserSchema import UserRead
 from services.BroadcastBroker import BroadcastBroker
 from urls import urls
+from models.NewsgroupsModel import newgroups_model
 
 api_key_header = APIKeyHeader(name="Token")
 broadcast = BroadcastBroker()
@@ -35,8 +36,7 @@ class Pagination:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings.debug:
-        print(settings)
+    newgroups_model.load_model()
     app.state.redis = RedisDb().rd
     app.state.http_client = httpx.AsyncClient()
     await broadcast.connect()

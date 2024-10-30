@@ -10,4 +10,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 
 import asyncio
-from trash2 import x
+
+
+class A:
+
+
+    def __init__(self):
+        print("class A")
+
+
+a = A()
